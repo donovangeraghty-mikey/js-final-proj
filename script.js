@@ -1,16 +1,234 @@
-// display movies
-function displayMovies(movies) {
-  const movieResults = movies.map((movie) => {
-    const poster = movie.Poster !== 'N/A' ? movie.Poster : '';
+const movies = [
+  {
+    Title: "Fight Club",
+    Year: "1999",
+    imdbID: "tt0137523",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BOTgyOGQ1NDItNGU3Ny00MjU3LTg2YWEtNmEyYjBiMjI1Y2M5XkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg",
+  },
+  {
+    Title: "Goon",
+    Year: "2012",
+    imdbID: "tt1456635",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMTcxOTQwMTQ3MF5BMl5BanBnXkFtZTcwMDcyOTQwNw@@._V1_QL75_UX380_CR0,0,380,562_.jpg",
+  },
+  {
+    Title: "Harry Potter and the Deathly Hallows: Part 2",
+    Year: "2011",
+    imdbID: "tt1201607",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BOTA1Mzc2N2ItZWRiNS00MjQzLTlmZDQtMjU0NmY1YWRkMGQ4XkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg",
+  },
+  {
+    Title: "Harry Potter and the Sorcerer's Stone",
+    Year: "2001",
+    imdbID: "tt0241527",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BNTU1MzgyMDMtMzBlZS00YzczLThmYWEtMjU3YmFlOWEyMjE1XkEyXkFqcGc@._V1_QL75_UY562_CR1,0,380,562_.jpg",
+  },
+  {
+    Title: "Harry Potter and the Prisoner of Azkaban",
+    Year: "2004",
+    imdbID: "tt0304141",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMTY4NTIwODg0N15BMl5BanBnXkFtZTcwOTc0MjEzMw@@._V1_QL75_UY562_CR0,0,380,562_.jpg",
+  },
+  {
+    Title: "Harry Potter and the Chamber of Secrets",
+    Year: "2002",
+    imdbID: "tt0295297",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BNGJhM2M2MWYtZjIzMC00MDZmLThkY2EtOWViMDhhYjRhMzk4XkEyXkFqcGc@._V1_QL75_UY562_CR6,0,380,562_.jpg",
+  },
+  {
+    Title: "Harry Potter and the Goblet of Fire",
+    Year: "2005",
+    imdbID: "tt0330373",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMTIzNzUzOTk2NV5BMl5BanBnXkFtZTYwNTI4MDg2._V1_QL75_UY562_CR0,0,380,562_.jpg",
+  },
+  {
+    Title: "Harry Potter and the Order of the Phoenix",
+    Year: "2007",
+    imdbID: "tt0373889",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BYWJmM2M1YzItMjY1Ni00YzRmLTg5YWYtNDFmNTJjNzQ0ODkyXkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg",
+  },
+  {
+    Title: "Harry Potter and the Deathly Hallows: Part 1",
+    Year: "2010",
+    imdbID: "tt0926084",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMTQ2OTE1Mjk0N15BMl5BanBnXkFtZTcwODE3MDAwNA@@._V1_QL75_UY562_CR0,0,380,562_.jpg",
+  },
+  {
+    Title: "Harry Potter and the Half-Blood Prince",
+    Year: "2009",
+    imdbID: "tt0417741",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BNzU3NDg4NTAyNV5BMl5BanBnXkFtZTcwOTg2ODg1Mg@@._V1_QL75_UX380_CR0,12,380,562_.jpg",
+  },
+  {
+    Title: "SpongeBob SquarePants",
+    Year: "1999–",
+    imdbID: "tt0206512",
+    Type: "series",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMTY2NGUzMWItYjE3Zi00YWFiLTlmYzYtMjYwZjM3YWMxMDRiXkEyXkFqcGc@._V1_QL75_UY562_CR1,0,380,562_.jpg",
+  },
+  {
+    Title: "The SpongeBob SquarePants Movie",
+    Year: "2004",
+    imdbID: "tt0345950",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BZTRhZDUzMjktOTJhMC00YjNlLTk5YjAtNTdiYTVmMzc1YTQ1XkEyXkFqcGc@._V1_QL75_UY562_CR0,0,380,562_.jpg",
+  },
+  {
+    Title: "The SpongeBob Movie: Sponge Out of Water",
+    Year: "2015",
+    imdbID: "tt2279373",
+    Type: "movie",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMGY4OGVlNDQtMzVlYy00NmE1LWE1N2YtZmNjYzJlOWY1NzZmXkEyXkFqcGc@._V1_QL75_UX380_CR0,15,380,562_.jpg",
+  },
+];
 
-    return `
-      <div class="movie">
-        <img src="${poster}" alt="${movie.Title}" />
-        <h3>${movie.Title}</h3>
-        <p>${movie.Year}</p>
-      </div>
-    `;
+const moviesGrid = document.querySelector("#moviesGrid");
+const resultsInfo = document.querySelector("#resultsInfo");
+const searchForm = document.querySelector("#searchForm");
+const searchInput = document.querySelector("#searchInput");
+const sortSelect = document.querySelector("#sortSelect");
+const OMDB_API_KEY = "3b3f8d02";
+
+function renderMovies(movieList) {
+  moviesGrid.replaceChildren();
+
+  if (movieList.length === 0) {
+    const emptyMessage = document.createElement("p");
+    emptyMessage.textContent = "No movies found.";
+    moviesGrid.append(emptyMessage);
+    return;
+  }
+
+  movieList.forEach((movie) => {
+    const card = document.createElement("article");
+    card.className = "movie-card";
+
+    if (movie.Poster && movie.Poster !== "N/A") {
+      const poster = document.createElement("img");
+      poster.className = "movie-card__img";
+      poster.src = movie.Poster;
+      poster.alt = `${movie.Title} poster`;
+      poster.loading = "lazy";
+      card.append(poster);
+    } else {
+      const placeholder = document.createElement("div");
+      placeholder.className = "movie-card__poster-placeholder";
+      placeholder.textContent = "Movie Poster Not Available";
+      card.append(placeholder);
+    }
+
+    const title = document.createElement("h2");
+    title.className = "movie-card__title";
+    title.textContent = movie.Title;
+
+    const year = document.createElement("p");
+    year.className = "movie-card__year";
+    year.textContent = movie.Year;
+
+    const rating = document.createElement("p");
+    rating.className = "movie-card__rating";
+    rating.textContent = movie.ratingLoading
+      ? "Rating: Loading..."
+      : movie.ratingError
+        ? "Rating: Could not load"
+        : `Rating: ${movie.imdbRating || "Not available"}`;
+
+    card.append(title, year, rating);
+    moviesGrid.append(card);
   });
-
-  document.querySelector('.movie-results').innerHTML = movieResults.join('');
 }
+
+function getVisibleMovies() {
+  const searchTerm = searchInput.value.trim().toLowerCase();
+  const visibleMovies = movies.filter((movie) =>
+    movie.Title.toLowerCase().includes(searchTerm),
+  );
+  const sortOrder = sortSelect.value;
+
+  if (sortOrder === "a-z") {
+    visibleMovies.sort((a, b) => a.Title.localeCompare(b.Title));
+  } else if (sortOrder === "z-a") {
+    visibleMovies.sort((a, b) => b.Title.localeCompare(a.Title));
+  } else if (sortOrder === "newest") {
+    visibleMovies.sort((a, b) => Number.parseInt(b.Year, 10) - Number.parseInt(a.Year, 10));
+  } else if (sortOrder === "oldest") {
+    visibleMovies.sort((a, b) => Number.parseInt(a.Year, 10) - Number.parseInt(b.Year, 10));
+  }
+
+  return visibleMovies;
+}
+
+function updateMovies() {
+  const visibleMovies = getVisibleMovies();
+  const searchTerm = searchInput.value.trim();
+  resultsInfo.textContent = searchTerm
+    ? `Showing results for: ${searchTerm} (${visibleMovies.length})`
+    : `Showing: All movies (${visibleMovies.length})`;
+  renderMovies(visibleMovies);
+}
+
+async function fetchMovieRating(movie) {
+  try {
+    const url = new URL("https://www.omdbapi.com/");
+    url.searchParams.set("i", movie.imdbID);
+    url.searchParams.set("apikey", OMDB_API_KEY);
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`OMDb request failed with status ${response.status}`);
+    }
+
+    const details = await response.json();
+    if (details.Response === "False") {
+      throw new Error(details.Error || "OMDb could not find this title");
+    }
+
+    movie.imdbRating =
+      details.imdbRating && details.imdbRating !== "N/A"
+        ? details.imdbRating
+        : "";
+  } catch (error) {
+    console.error(`Could not load the rating for "${movie.Title}".`, error);
+    movie.ratingError = true;
+  } finally {
+    movie.ratingLoading = false;
+    updateMovies();
+  }
+}
+
+searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  updateMovies();
+});
+
+sortSelect.addEventListener("change", updateMovies);
+
+updateMovies();
+movies.forEach((movie) => {
+  movie.ratingLoading = true;
+});
+updateMovies();
+movies.forEach((movie) => fetchMovieRating(movie));
