@@ -143,6 +143,22 @@ nav:has(.search-form__input:hover) {
   transition: all 300ms ease;
 }
 
+.search-form__button:disabled {
+  cursor: wait;
+}
+
+.search-form__spinner {
+  display: none;
+}
+
+.search-form.is-loading .search-form__icon--search {
+  display: none;
+}
+
+.search-form.is-loading .search-form__spinner {
+  display: inline-block;
+}
+
 .search-form__button:hover {
   background-color: #b8d5dd;
 }
@@ -173,6 +189,15 @@ main {
   border-radius: 16px;
   font-family: "Geist", sans-serif;
   margin-left: 8px;
+}
+
+.sort-control__spinner {
+  display: none;
+  margin-left: 6px;
+}
+
+.sort-control.is-loading .sort-control__spinner {
+  display: inline-block;
 }
 
 .movies-grid {

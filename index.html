@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simplified Movies API ref</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -28,7 +32,7 @@
           />
           <button class="search-form__button" type="submit" aria-label="Search">
             <svg
-              class="search-form__icon"
+              class="search-form__icon search-form__icon--search"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -39,6 +43,10 @@
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
+            <i
+              class="fa-solid fa-spinner fa-spin search-form__spinner"
+              aria-hidden="true"
+            ></i>
           </button>
         </div>
       </form>
@@ -49,7 +57,7 @@
         <p id="resultsInfo" class="resultsInfo" aria-live="polite">
           Showing: All movies
         </p>
-        <div>
+        <div class="sort-control" aria-busy="false">
           <label for="sortSelect">Sort:</label>
           <select id="sortSelect">
             <option value="default">Default</option>
@@ -58,6 +66,10 @@
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
           </select>
+          <i
+            class="fa-solid fa-spinner fa-spin sort-control__spinner"
+            aria-hidden="true"
+          ></i>
         </div>
       </div>
 
@@ -65,7 +77,7 @@
     </main>
 
     <footer>
-      <p>Created by Simplified.org. Powered by OMDBapi.</p>
+      <p>Created by Donovan G. Powered by OMDBapi.</p>
     </footer>
 
     <script src="script.js"></script>

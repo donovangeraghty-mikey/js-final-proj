@@ -110,6 +110,8 @@ const resultsInfo = document.querySelector("#resultsInfo");
 const searchForm = document.querySelector("#searchForm");
 const searchInput = document.querySelector("#searchInput");
 const sortSelect = document.querySelector("#sortSelect");
+const searchButton = searchForm.querySelector(".search-form__button");
+const sortControl = document.querySelector(".sort-control");
 const OMDB_API_KEY = "3b3f8d02";
 
 function renderMovies(movieList) {
@@ -191,6 +193,7 @@ function updateMovies() {
 }
 
 async function fetchMovieRating(movie) {
+  movie.ratingLoading = true;
   try {
     const url = new URL("https://www.omdbapi.com/");
     url.searchParams.set("i", movie.imdbID);
@@ -219,16 +222,47 @@ async function fetchMovieRating(movie) {
   }
 }
 
-searchForm.addEventListener("submit", (event) => {
+const ratingRequests = new Map(
+  movies.map((movie) => [movie.imdbID, fetchMovieRating(movie)]),
+);
+
+function setSearchLoading(isLoading) {
+  searchForm.classList.toggle("is-loading", isLoading);
+  searchForm.setAttribute("aria-busy", String(isLoading));
+  searchButton.disabled = isLoading;
+  searchButton.setAttribute(
+    "aria-label",
+    isLoading ? "Loading search results" : "Search",
+  );
+}
+
+searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   updateMovies();
+  setSearchLoading(true);
+  try {
+    await Promise.all(
+      getVisibleMovies().map((movie) => ratingRequests.get(movie.imdbID)),
+    );
+  } finally {
+    setSearchLoading(false);
+    updateMovies();
+  }
 });
 
-sortSelect.addEventListener("change", updateMovies);
+sortSelect.addEventListener("change", async () => {
+  sortControl.classList.add("is-loading");
+  sortControl.setAttribute("aria-busy", "true");
+  sortSelect.disabled = true;
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    updateMovies();
+  } finally {
+    sortControl.classList.remove("is-loading");
+    sortControl.setAttribute("aria-busy", "false");
+    sortSelect.disabled = false;
+  }
+});
 
 updateMovies();
-movies.forEach((movie) => {
-  movie.ratingLoading = true;
-});
-updateMovies();
-movies.forEach((movie) => fetchMovieRating(movie));
