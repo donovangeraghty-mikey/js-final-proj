@@ -1,4 +1,4 @@
-const movies = [
+const initialMovies = [
   {
     Title: "Fight Club",
     Year: "1999",
@@ -105,6 +105,9 @@ const movies = [
   },
 ];
 
+let movies = [...initialMovies];
+let currentSearchTerm = "";
+let searchRequestId = 0;
 const moviesGrid = document.querySelector("#moviesGrid");
 const resultsInfo = document.querySelector("#resultsInfo");
 const searchForm = document.querySelector("#searchForm");
@@ -164,10 +167,7 @@ function renderMovies(movieList) {
 }
 
 function getVisibleMovies() {
-  const searchTerm = searchInput.value.trim().toLowerCase();
-  const visibleMovies = movies.filter((movie) =>
-    movie.Title.toLowerCase().includes(searchTerm),
-  );
+  const visibleMovies = [...movies];
   const sortOrder = sortSelect.value;
 
   if (sortOrder === "a-z") {
@@ -185,21 +185,31 @@ function getVisibleMovies() {
 
 function updateMovies() {
   const visibleMovies = getVisibleMovies();
-  const searchTerm = searchInput.value.trim();
-  resultsInfo.textContent = searchTerm
-    ? `Showing results for: ${searchTerm} (${visibleMovies.length})`
+  resultsInfo.textContent = currentSearchTerm
+    ? `Showing results for: ${currentSearchTerm} (${visibleMovies.length})`
     : `Showing: All movies (${visibleMovies.length})`;
   renderMovies(visibleMovies);
 }
 
-async function fetchMovieRating(movie) {
+function createOmdbUrl(params) {
+  const url = new URL("https://www.omdbapi.com/");
+  url.searchParams.set("apikey", OMDB_API_KEY);
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  });
+  return url;
+}
+
+async function fetchMovieDetails(movie) {
+  if (movie.imdbRating || movie.ratingError) {
+    return movie;
+  }
+
   movie.ratingLoading = true;
   try {
-    const url = new URL("https://www.omdbapi.com/");
-    url.searchParams.set("i", movie.imdbID);
-    url.searchParams.set("apikey", OMDB_API_KEY);
-
-    const response = await fetch(url);
+    const response = await fetch(
+      createOmdbUrl({ i: movie.imdbID }),
+    );
     if (!response.ok) {
       throw new Error(`OMDb request failed with status ${response.status}`);
     }
@@ -218,13 +228,18 @@ async function fetchMovieRating(movie) {
     movie.ratingError = true;
   } finally {
     movie.ratingLoading = false;
-    updateMovies();
   }
+  return movie;
 }
 
-const ratingRequests = new Map(
-  movies.map((movie) => [movie.imdbID, fetchMovieRating(movie)]),
-);
+const ratingRequests = new Map();
+
+function getMovieDetails(movie) {
+  if (!ratingRequests.has(movie.imdbID)) {
+    ratingRequests.set(movie.imdbID, fetchMovieDetails(movie));
+  }
+  return ratingRequests.get(movie.imdbID);
+}
 
 function setSearchLoading(isLoading) {
   searchForm.classList.toggle("is-loading", isLoading);
@@ -238,15 +253,71 @@ function setSearchLoading(isLoading) {
 
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  updateMovies();
+  const searchTerm = searchInput.value.trim();
+  if (!searchTerm) {
+    return;
+  }
+
+  const requestId = ++searchRequestId;
   setSearchLoading(true);
+  resultsInfo.textContent = `Searching OMDb for: ${searchTerm}...`;
+
   try {
-    await Promise.all(
-      getVisibleMovies().map((movie) => ratingRequests.get(movie.imdbID)),
+    const response = await fetch(
+      createOmdbUrl({ s: searchTerm, page: "1" }),
     );
-  } finally {
-    setSearchLoading(false);
+    if (!response.ok) {
+      throw new Error(`OMDb search failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (requestId !== searchRequestId) {
+      return;
+    }
+
+    if (data.Response === "False") {
+      if (data.Error === "Movie not found!") {
+        movies = [];
+        currentSearchTerm = searchTerm;
+        updateMovies();
+        return;
+      }
+      throw new Error(data.Error || "OMDb search failed");
+    }
+
+    if (!Array.isArray(data.Search)) {
+      throw new Error("OMDb returned an invalid search response");
+    }
+
+    const searchResults = data.Search.map((result) => ({
+      ...result,
+      ratingLoading: true,
+    }));
+
+    if (requestId !== searchRequestId) {
+      return;
+    }
+
+    movies = searchResults;
+    currentSearchTerm = searchTerm;
     updateMovies();
+
+    await Promise.all(searchResults.map((movie) => getMovieDetails(movie)));
+    if (requestId === searchRequestId) {
+      updateMovies();
+    }
+  } catch (error) {
+    if (requestId === searchRequestId) {
+      movies = [];
+      currentSearchTerm = searchTerm;
+      resultsInfo.textContent = "Could not load movies. Please try again.";
+      renderMovies([]);
+      console.error("Could not search OMDb.", error);
+    }
+  } finally {
+    if (requestId === searchRequestId) {
+      setSearchLoading(false);
+    }
   }
 });
 
@@ -257,7 +328,11 @@ sortSelect.addEventListener("change", async () => {
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 120));
+    movies.forEach((movie) => {
+      movie.ratingLoading = true;
+    });
     updateMovies();
+    Promise.all(movies.map((movie) => getMovieDetails(movie))).then(updateMovies);
   } finally {
     sortControl.classList.remove("is-loading");
     sortControl.setAttribute("aria-busy", "false");
