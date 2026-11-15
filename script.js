@@ -200,16 +200,9 @@ function createOmdbUrl(params) {
   return url;
 }
 
-async function fetchMovieDetails(movie) {
-  if (movie.imdbRating || movie.ratingError) {
-    return movie;
-  }
-
-  movie.ratingLoading = true;
+async function fetchMovieRating(imdbID) {
   try {
-    const response = await fetch(
-      createOmdbUrl({ i: movie.imdbID }),
-    );
+    const response = await fetch(createOmdbUrl({ i: imdbID }));
     if (!response.ok) {
       throw new Error(`OMDb request failed with status ${response.status}`);
     }
@@ -219,26 +212,31 @@ async function fetchMovieDetails(movie) {
       throw new Error(details.Error || "OMDb could not find this title");
     }
 
-    movie.imdbRating =
-      details.imdbRating && details.imdbRating !== "N/A"
-        ? details.imdbRating
-        : "";
+    return {
+      imdbRating:
+        details.imdbRating && details.imdbRating !== "N/A"
+          ? details.imdbRating
+          : "",
+      ratingError: false,
+    };
   } catch (error) {
-    console.error(`Could not load the rating for "${movie.Title}".`, error);
-    movie.ratingError = true;
-  } finally {
-    movie.ratingLoading = false;
+    console.error(`Could not load the rating for IMDb ID "${imdbID}".`, error);
+    return { imdbRating: "", ratingError: true };
   }
-  return movie;
 }
 
 const ratingRequests = new Map();
 
 function getMovieDetails(movie) {
   if (!ratingRequests.has(movie.imdbID)) {
-    ratingRequests.set(movie.imdbID, fetchMovieDetails(movie));
+    ratingRequests.set(movie.imdbID, fetchMovieRating(movie.imdbID));
   }
-  return ratingRequests.get(movie.imdbID);
+
+  movie.ratingLoading = true;
+  return ratingRequests.get(movie.imdbID).then((ratingDetails) => {
+    Object.assign(movie, ratingDetails, { ratingLoading: false });
+    return movie;
+  });
 }
 
 function setSearchLoading(isLoading) {
@@ -328,11 +326,7 @@ sortSelect.addEventListener("change", async () => {
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 120));
-    movies.forEach((movie) => {
-      movie.ratingLoading = true;
-    });
     updateMovies();
-    Promise.all(movies.map((movie) => getMovieDetails(movie))).then(updateMovies);
   } finally {
     sortControl.classList.remove("is-loading");
     sortControl.setAttribute("aria-busy", "false");
@@ -341,3 +335,4 @@ sortSelect.addEventListener("change", async () => {
 });
 
 updateMovies();
+Promise.all(movies.map((movie) => getMovieDetails(movie))).then(updateMovies);
